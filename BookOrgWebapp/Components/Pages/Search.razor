@@ -1,0 +1,88 @@
+@page "/search"
+@using BookOrgWebapp.Models
+
+<PageTitle>Search</PageTitle>
+
+<h1>Book Search</h1>
+
+<div class="mb-3">
+    <input class="form-control"
+           placeholder="Search by ISBN, Title, Author, Year..."
+           @bind="searchTerm"
+           @bind:event="oninput" />
+</div>
+
+@if (!FilteredBooks.Any())
+{
+    <p><em>No matching books found.</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ISBN</th>
+            <th>UserID</th>
+            <th>Book Name</th>
+            <th>Year</th>
+            <th>Authors</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var book in FilteredBooks)
+        {
+            <tr>
+                <td>@book.ISBN</td>
+                <td>@book.UserID</td>
+                <td>@book.BookName</td>
+                <td>@book.YearOfPublication</td>
+                <td>@string.Join(", ", book.Authors)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string searchTerm = string.Empty;
+
+    // Temporary in-memory list (later replace with DB)
+    private List<Book> books = new()
+    {
+        new Book
+        {
+            ISBN = "9780547928227",
+            UserID = 101,
+            BookName = "The Hobbit",
+            YearOfPublication = 1937,
+            Authors = new List<string> { "J.R.R. Tolkien" }
+        },
+        new Book
+        {
+            ISBN = "9780441013593",
+            UserID = 102,
+            BookName = "Dune",
+            YearOfPublication = 1965,
+            Authors = new List<string> { "Frank Herbert" }
+        },
+        new Book
+        {
+            ISBN = "9780132350884",
+            UserID = 103,
+            BookName = "Clean Code",
+            YearOfPublication = 2008,
+            Authors = new List<string> { "Robert C. Martin" }
+        }
+    };
+
+    private IEnumerable<Book> FilteredBooks =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? books
+            : books.Where(b =>
+                b.ISBN.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                b.UserID.ToString().Contains(searchTerm) ||
+                b.BookName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                b.YearOfPublication.ToString().Contains(searchTerm) ||
+                b.Authors.Any(a => a.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            );
+}
