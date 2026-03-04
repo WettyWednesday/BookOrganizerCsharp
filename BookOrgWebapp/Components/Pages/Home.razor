@@ -1,7 +1,46 @@
 ﻿@page "/"
+@inject BookOrgWebapp.Data.AppDbContext Context
+@using BookOrgWebapp.Models
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Database Overview</h1>
 
-Welcome to your new app.
+@if (users == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    @foreach (var user in users)
+    {
+        <h3>@user.Name (@user.Email)</h3>
+
+        if (user.Books.Any())
+        {
+            <ul>
+                @foreach (var book in user.Books)
+                {
+                    <li>@book.Title.BookName (@book.ISBN)</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No books</p>
+        }
+    }
+}
+
+@code {
+    private List<User>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Context.Users
+            .Include(u => u.Books)
+                .ThenInclude(b => b.Title)
+            .ToListAsync();
+    }
+}
