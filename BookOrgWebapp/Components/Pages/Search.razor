@@ -1,6 +1,10 @@
 @page "/search"
+@using BookOrgWebapp.Data
 @using BookOrgWebapp.Models
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components
+
+@inject AppDbContext Db
 
 <PageTitle>Search</PageTitle>
 
@@ -9,18 +13,15 @@
 <div class="mb-3">
     <form action="/search" method="get" data-enhance data-permanent>
         <div class="input-group">
-            <input class="form-control"
-                   type="search"
-                   name="searchTerm"
-                   value="@SearchTerm"
-                   placeholder="Search by ISBN, Title, Author, Year..." />
+            <input class="form-control" type="search" name="searchTerm" value="@SearchTerm"
+                   placeholder="Search by ISBN, Title, User, Email..." />
 
             <button class="btn btn-primary" type="submit">Search</button>
         </div>
     </form>
 </div>
 
-@if (!FilteredBooks.Any())
+@if (!books.Any())
 {
     <p><em>No matching books found.</em></p>
 }
@@ -28,26 +29,26 @@ else
 {
     <table class="table table-striped">
         <thead>
-        <tr>
-            <th>ISBN</th>
-            <th>UserID</th>
-            <th>Book Name</th>
-            <th>Year</th>
-            <th>Authors</th>
-        </tr>
+            <tr>
+                <th>ISBN</th>
+                <th>UserID</th>
+                <th>Book Name</th>
+                <th>User</th>
+                <th>Email</th>
+            </tr>
         </thead>
 
         <tbody>
-        @foreach (var book in FilteredBooks)
-        {
-            <tr>
-                <td>@book.ISBN</td>
-                <td>@book.UserID</td>
-                <td>@book.BookName</td>
-                <td>@book.YearOfPublication</td>
-                <td>@string.Join(", ", book.Authors)</td>
-            </tr>
-        }
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.ISBN</td>
+                    <td>@book.UserID</td>
+                    <td>@book.Title.BookName</td>
+                    <td>@book.User.Name</td>
+                    <td>@book.User.Email</td>
+                </tr>
+            }
         </tbody>
     </table>
 }
@@ -58,42 +59,25 @@ else
     [SupplyParameterFromQuery]
     private string? SearchTerm { get; set; }
 
-    private List<Book> books = new()
-    {
-        new Book
-        {
-            ISBN = "9780547928227",
-            UserID = 101,
-            BookName = "The Hobbit",
-            YearOfPublication = 1937,
-            Authors = new List<string> { "J.R.R. Tolkien" }
-        },
-        new Book
-        {
-            ISBN = "9780441013593",
-            UserID = 102,
-            BookName = "Dune",
-            YearOfPublication = 1965,
-            Authors = new List<string> { "Frank Herbert" }
-        },
-        new Book
-        {
-            ISBN = "9780132350884",
-            UserID = 103,
-            BookName = "Clean Code",
-            YearOfPublication = 2008,
-            Authors = new List<string> { "Robert C. Martin" }
-        }
-    };
+    private List<Book> books = new();
 
-    private IEnumerable<Book> FilteredBooks =>
-        string.IsNullOrWhiteSpace(SearchTerm)
-            ? books
-            : books.Where(b =>
-                b.ISBN.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+    protected override async Task OnParametersSetAsync()
+    {
+        var query = Db.Books
+            .Include(b => b.Title)
+            .Include(b => b.User)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            query = query.Where(b =>
+                b.ISBN.Contains(SearchTerm) ||
                 b.UserID.ToString().Contains(SearchTerm) ||
-                b.BookName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                b.YearOfPublication.ToString().Contains(SearchTerm) ||
-                b.Authors.Any(a => a.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
-            );
+                b.Title.BookName.ToLower().Contains(SearchTerm.ToLower()) ||
+                b.User.Name.ToLower().Contains(SearchTerm.ToLower()) ||
+                b.User.Email.ToLower().Contains(SearchTerm.ToLower()));
+        }
+
+        books = await query.ToListAsync();
+    }
 }
