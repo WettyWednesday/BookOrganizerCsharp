@@ -1,46 +1,64 @@
 ﻿@page "/"
-@inject BookOrgWebapp.Data.AppDbContext Context
-@using BookOrgWebapp.Models
-@using Microsoft.EntityFrameworkCore
+@inject GoogleBooksService BooksService
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<div class="landing-container">
 
-<h1>Database Overview</h1>
+    <h1 class="landing-title">Welcome To Book Organizer</h1>
 
-@if (users == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    @foreach (var user in users)
+    <input class="search-input"
+           placeholder="Enter ISBN..."
+           @bind="isbn" />
+
+    <button class="search-button" @onclick="SearchBook">
+        Search
+    </button>
+
+    @if (!string.IsNullOrEmpty(error))
     {
-        <h3>@user.Name (@user.Email)</h3>
+        <p style="color:red">@error</p>
+    }
 
-        if (user.Books.Any())
+    @if (book != null)
+    {
+        <div class="book-result">
+            <h2>@book.Title</h2>
+            <p>@string.Join(", ", book.Authors ?? new List<string>())</p>
+            <p>@book.Description</p>
+        </div>
+    }
+
+</div>
+
+@code {
+
+    string isbn = "";
+    string error = "";
+
+    VolumeInfo? book;
+
+    async Task SearchBook()
+    {
+        Console.WriteLine("Button clicked");
+        error = "";
+        book = null;
+
+        if (!ISBNValidator.IsValidISBN(isbn))
         {
-            <ul>
-                @foreach (var book in user.Books)
-                {
-                    <li>@book.Title.BookName (@book.ISBN)</li>
-                }
-            </ul>
+            error = "Please enter a valid ISBN-10 or ISBN-13.";
+            return;
+        }
+
+        var result = await BooksService.GetBookByISBN(isbn);
+
+        if (result?.Items?.Count > 0)
+        {
+            book = result.Items[0].VolumeInfo;
         }
         else
         {
-            <p>No books</p>
+            error = "Book not found.";
         }
     }
-}
 
-@code {
-    private List<User>? users;
-
-    protected override async Task OnInitializedAsync()
-    {
-        users = await Context.Users
-            .Include(u => u.Books)
-                .ThenInclude(b => b.Title)
-            .ToListAsync();
-    }
 }
