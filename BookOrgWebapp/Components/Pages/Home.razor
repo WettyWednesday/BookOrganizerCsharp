@@ -25,7 +25,13 @@
             <h2>@book.Title</h2>
             <p>Author: @string.Join(", ", book.Authors ?? new List<string>())</p>
             <p>Description: @book.Description</p>
+            <p>Genre: @string.Join(", ", book.Categories ?? new List<string>())</p>
+            <p>Language: @book.Language</p>
+            <p>Pages: @book.PageCount</p>
             <p>Publisher: @book.Publisher</p>
+            <p>Published: @book.PublishedDate</p>
+            <p>Image thumbnail: @book.ImageLinks.thumbnail</p>
+            <p>Small image thumbnail: @book.ImageLinks.SmallThumbnail</p>
         </div>
     }
 
