@@ -23,8 +23,9 @@
     {
         <div class="book-result">
             <h2>@book.Title</h2>
-            <p>@string.Join(", ", book.Authors ?? new List<string>())</p>
-            <p>@book.Description</p>
+            <p>Author: @string.Join(", ", book.Authors ?? new List<string>())</p>
+            <p>Description: @book.Description</p>
+            <p>Publisher: @book.Publisher</p>
         </div>
     }
 
