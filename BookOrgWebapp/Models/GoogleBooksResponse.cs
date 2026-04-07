@@ -20,7 +20,15 @@ public class VolumeInfo
     public string? Language { get; set; }
     public int? PageCount { get; set; }
 
-    public ImageLinks? ImageLinks { get; set; } 
+    public ImageLinks? ImageLinks { get; set; }
+
+    public List<IndustryIdentifier>? IndustryIdentifiers { get; set; }
+}
+
+public class IndustryIdentifier
+{
+    public string? Type { get; set; }
+    public string? Identifier { get; set; }
 }
 
 public class ImageLinks

@@ -19,5 +19,5 @@ public class User
     [Column(TypeName = "nvarchar(60)")]
     public string Email { get; set; }
 
-    public ICollection<Book> Books { get; set; }
+    public ICollection<UserBook> UserBooks { get; set; }
 }

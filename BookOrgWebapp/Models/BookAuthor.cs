@@ -3,11 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookOrgWebapp.Models;
 
-public class Book
+public class BookAuthor
 {
+    public int AuthorID { get; set; }
     public string ISBN { get; set; }
-    public int UserID { get; set; }
-
-    public Title Title { get; set; }
-    public User User { get; set; }
+    public Title Title { get; set; } = null!;
+    public Author Author { get; set; } = null!;
 }
