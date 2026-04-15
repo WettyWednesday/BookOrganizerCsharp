@@ -6,9 +6,7 @@
 
     <h1 class="landing-title">Welcome To Book Organizer</h1>
 
-    <input class="search-input"
-           placeholder="Enter ISBN..."
-           @bind="isbn" />
+    <input class="search-input" placeholder="Enter ISBN..." @bind="isbn" />
 
     <button class="search-button" @onclick="SearchBook">
         Search
@@ -22,9 +20,29 @@
     @if (book != null)
     {
         <div class="book-result">
-            <h2>@book.Title</h2>
-            <p>@string.Join(", ", book.Authors ?? new List<string>())</p>
-            <p>@book.Description</p>
+
+            <div class="book-content">
+
+                <div class="book-image">
+                    @if (!string.IsNullOrEmpty(book.ImageLinks?.Thumbnail))
+                    {
+                        <img src="@book.ImageLinks.Thumbnail?.Replace("http://", "https://")" alt="Book cover" />
+                    }
+                    else
+                    {
+                        <div class="no-image">No image found</div>
+                    }
+                </div>
+
+                <div class="book-text">
+                    <h2>@book.Title</h2>
+                    <p>@string.Join(", ", book.Authors ?? new List<string>())</p>
+                    <p>@book.Description</p>
+                    <button class="add-button">Add Book</button>
+                </div>
+
+            </div>
+
         </div>
     }
 
