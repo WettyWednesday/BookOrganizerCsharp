@@ -1,0 +1,22 @@
+namespace DefaultNamespace;
+
+public class LoginDisplay_razor
+{
+    @inject NavigationManager Nav
+
+        <AuthorizeView>
+    <Authorized>
+    <img src="@GetAvatar(context)" width="32" style="border-radius:50%" />
+    <span>@context.User.Identity?.Name</span>
+    <a href="/logout">Logout</a>
+    </Authorized>
+    <NotAuthorized>
+    <a href="/login">Login with Google</a>
+    </NotAuthorized>
+    </AuthorizeView>
+
+    @code {
+        string GetAvatar(AuthenticationState ctx) =>
+            ctx.User.FindFirst("picture")?.Value ?? "/default-avatar.png";
+    }
+}
