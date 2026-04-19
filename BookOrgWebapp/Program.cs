@@ -1,6 +1,11 @@
 using BookOrgWebapp.Components;
 using BookOrgWebapp.Data;
+using BookOrgWebapp.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,5 +118,11 @@ app.MapGet("/logout", async (HttpContext ctx) =>
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated(); // or Migrate() if using migrations
+}
 
 app.Run();
