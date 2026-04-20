@@ -42,7 +42,6 @@ builder.Services.AddAuthentication(options =>
 
     options.Events.OnCreatingTicket = async context =>
     {
-        // Use IDbContextFactory since that's what your app uses
         var dbFactory = context.HttpContext.RequestServices
                                .GetRequiredService<IDbContextFactory<AppDbContext>>();
 
@@ -53,7 +52,6 @@ builder.Services.AddAuthentication(options =>
         var name     = context.Principal.FindFirst(ClaimTypes.Name)?.Value ?? email;
         var avatar   = context.Principal.FindFirst("picture")?.Value;
 
-        // Match by GoogleId first, fall back to email for existing seed users
         var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId)
                 ?? await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
@@ -90,7 +88,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
@@ -119,10 +116,11 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Brugt til Debugging
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated(); // or Migrate() if using migrations
+    db.Database.EnsureCreated(); 
 }
 
 app.Run();
