@@ -19,7 +19,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient<GoogleBooksService>();
 
-// --- Google Authentication ---
+// Authentication + cookies + add google user
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
