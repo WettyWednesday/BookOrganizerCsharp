@@ -50,6 +50,11 @@ public class AppDbContext : DbContext
             .WithMany(u => u.UserBooks)
             .HasForeignKey(b => b.UserID)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.GoogleId)
+            .IsUnique()
+            .HasFilter("[GoogleId] IS NOT NULL");
 
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 

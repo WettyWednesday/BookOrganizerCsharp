@@ -18,6 +18,9 @@ public class User
     [StringLength(60)]
     [Column(TypeName = "nvarchar(60)")]
     public string Email { get; set; }
+    
+    public string? GoogleId { get; set; }
+    public string? AvatarUrl { get; set; }
 
     public ICollection<UserBook> UserBooks { get; set; }
 }
