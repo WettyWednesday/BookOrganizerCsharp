@@ -1,8 +1,10 @@
 ﻿@page "/"
 @inject GoogleBooksService BooksService
+@inject AppDbContext Db
 @rendermode InteractiveServer
 
-<div class="landing-container">
+
+<div class="landing-container" style="height:600px;overflow-y:scroll">
 
     <h1 class="landing-title">Welcome To Book Organizer</h1>
 
@@ -46,6 +48,18 @@
         </div>
     }
 
+    <select @bind="selectedUserId">
+    <option value="">-- Select User --</option>
+    @foreach (var user in users)
+    {
+        <option value="@user.UserID">@user.Name</option>
+    }
+    </select>
+    <button class="add-button" @onclick="AddBook">
+    Add
+    </button>
+    
+
 </div>
 
 @code {
@@ -54,6 +68,129 @@
     string error = "";
 
     VolumeInfo? book;
+    List<User> users = new();
+    int? selectedUserId;
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Db.Users.ToListAsync();
+    }
+
+    async Task AddBook()
+    {
+        if (book == null)
+        {
+            error = "Search for a book first.";
+            return;
+        }
+
+        if (selectedUserId == null)
+        {
+            error = "Please select a user.";
+            return;
+        }
+
+        // Extract ISBNs
+        var isbn13 = book.IndustryIdentifiers?
+            .FirstOrDefault(x => x.Type == "ISBN_13")?.Identifier;
+
+        var isbn10 = book.IndustryIdentifiers?
+            .FirstOrDefault(x => x.Type == "ISBN_10")?.Identifier;
+
+        if (isbn13 == null)
+        {
+            error = "No ISBN13 found.";
+            return;
+        }
+
+        // Check if book already exists
+        var existingTitle = await Db.Titles
+            .Include(t => t.BookAuthors)
+            .Include(t => t.BookGenres)
+            .FirstOrDefaultAsync(t => t.ISBN == isbn13);
+
+        if (existingTitle == null)
+        {
+            var newTitle = new Title
+            {
+                ISBN = isbn13,
+                ISBN10 = isbn10,
+                BookName = book.Title!,
+                SubTitle = book.Subtitle,
+                Description = book.Description,
+                Publisher = book.Publisher,
+                Language = book.Language,
+                PageCount = book.PageCount,
+                ThumbnailNormal = book.ImageLinks?.thumbnail,
+                ThumbnailSmall = book.ImageLinks?.SmallThumbnail,
+                PublishedDate = ParseDate(book.PublishedDate)
+            };
+
+            // Authors
+            if (book.Authors != null)
+            {
+                foreach (var authorName in book.Authors)
+                {
+                    var author = await Db.Authors
+                        .FirstOrDefaultAsync(a => a.AuthorName == authorName);
+
+                    if (author == null)
+                    {
+                        author = new Author { AuthorName = authorName };
+                        Db.Authors.Add(author);
+                        await Db.SaveChangesAsync(); // needed for ID
+                    }
+
+                    newTitle.BookAuthors.Add(new BookAuthor
+                    {
+                        AuthorID = author.AuthorID,
+                        ISBN = isbn13
+                    });
+                }
+            }
+
+            // Genres
+            if (book.Categories != null)
+            {
+                foreach (var genre in book.Categories)
+                {
+                    newTitle.BookGenres.Add(new BookGenre
+                    {
+                        Genre = genre,
+                        ISBN = isbn13
+                    });
+                }
+            }
+
+            Db.Titles.Add(newTitle);
+            await Db.SaveChangesAsync();
+        }
+
+        // Add to UserBook (avoid duplicates!)
+        var exists = await Db.UserBooks
+            .AnyAsync(ub => ub.ISBN == isbn13 && ub.UserID == selectedUserId);
+
+        if (!exists)
+        {
+            Db.UserBooks.Add(new UserBook
+            {
+                ISBN = isbn13,
+                UserID = selectedUserId.Value
+            });
+
+            await Db.SaveChangesAsync();
+        }
+    }
+
+    DateTime? ParseDate(string? date)
+    {
+        if (string.IsNullOrWhiteSpace(date))
+            return null;
+
+        if (DateTime.TryParse(date, out var parsed))
+            return parsed;
+
+        return null;
+    }
 
     async Task SearchBook()
     {

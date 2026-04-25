@@ -59,11 +59,11 @@ else
     [SupplyParameterFromQuery]
     private string? SearchTerm { get; set; }
 
-    private List<Book> books = new();
+    private List<UserBook> books = new();
 
     protected override async Task OnParametersSetAsync()
     {
-        var query = Db.Books
+        var query = Db.UserBooks
             .Include(b => b.Title)
             .Include(b => b.User)
             .AsQueryable();
