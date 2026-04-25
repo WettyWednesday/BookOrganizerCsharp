@@ -26,9 +26,9 @@
             <div class="book-content">
 
                 <div class="book-image">
-                    @if (!string.IsNullOrEmpty(book.ImageLinks?.Thumbnail))
+                    @if (!string.IsNullOrEmpty(book.ImageLinks?.thumbnail))
                     {
-                        <img src="@book.ImageLinks.Thumbnail?.Replace("http://", "https://")" alt="Book cover" />
+                        <img src="@book.ImageLinks.thumbnail?.Replace("http://", "https://")" alt="Book cover" />
                     }
                     else
                     {
