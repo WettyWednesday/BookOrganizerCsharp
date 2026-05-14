@@ -1,0 +1,81 @@
+@using BookOrgWebapp.Models
+
+@if (Book != null)
+{
+    <div class="modal-backdrop" @onclick="Close">
+
+        <div class="book-modal"
+             @onclick:stopPropagation="true">
+
+            <button type="button"
+                    class="close-button"
+                    style="width:40px; height:40px;"
+                    @onclick="Close">
+                X
+            </button>
+
+            <div class="modal-content">
+
+                <div class="cover-section">
+                    <img src="@Book.Title.ThumbnailNormal?.Replace("http://", "https://")"
+                         alt="@Book.Title.BookName" />
+                </div>
+
+                <div class="details-section">
+
+                    <h2>@Book.Title.BookName</h2>
+
+                    <p class="owner">
+                        Owned by <strong>@Book.User.Name</strong>
+                    </p>
+
+                    <p>
+                        <strong>ISBN:</strong>
+                        @Book.ISBN
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Title.Language))
+                    {
+                        <p>
+                            <strong>Language:</strong>
+                            @Book.Title.Language
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Title.Publisher))
+                    {
+                        <p>
+                            <strong>Publisher:</strong>
+                            @Book.Title.Publisher
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Title.Description))
+                    {
+                        <div class="description">
+                            @Book.Title.Description
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public UserBook? Book { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

@@ -1,8 +1,10 @@
 @page "/search"
 @using BookOrgWebapp.Data
 @using BookOrgWebapp.Models
+@using BookOrgWebapp.Components.Books
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components
+@rendermode InteractiveServer
 
 @inject AppDbContext Db
 
@@ -27,30 +29,18 @@
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ISBN</th>
-                <th>UserID</th>
-                <th>Book Name</th>
-                <th>User</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            @foreach (var book in books)
-            {
-                <tr>
-                    <td>@book.ISBN</td>
-                    <td>@book.UserID</td>
-                    <td>@book.Title.BookName</td>
-                    <td>@book.User.Name</td>
-                    <td>@book.User.Email</td>
-                </tr>
+    <div class="book-grid">
+        @foreach (var book in books)
+        {
+            <BookCard Book="@book"
+                    OnSelected="@(b => OpenBook(b))" />
             }
-        </tbody>
-    </table>
+    </div>
+}
+@if (selectedBook != null)
+{
+    <BookDetailsModal Book="selectedBook"
+                      OnClose="CloseModal" />
 }
 
 @code {
@@ -60,6 +50,19 @@ else
     private string? SearchTerm { get; set; }
 
     private List<UserBook> books = new();
+    
+    private UserBook? selectedBook;
+
+    private Task OpenBook(UserBook book)
+    {
+        selectedBook = book;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void CloseModal()
+    {
+        selectedBook = null;
+    }
 
     protected override async Task OnParametersSetAsync()
     {

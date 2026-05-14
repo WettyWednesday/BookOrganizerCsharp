@@ -1,0 +1,39 @@
+@using BookOrgWebapp.Models
+
+<div class="book-card" @onclick="HandleClick">
+    
+
+    <img class="book-cover"
+         src="@Book.Title.ThumbnailNormal"
+         alt="@Book.Title.BookName" />
+
+    <div class="owner-badge"
+         title="@Book.User.Name">
+        @Book.User.Name.Substring(0, 1).ToUpper()
+    </div>
+
+    <div class="book-info">
+        <h5>@Book.Title.BookName</h5>
+
+        <p class="owner-name">
+            @Book.User.Name
+        </p>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public required UserBook Book { get; set; }
+    [Parameter]
+    public EventCallback<UserBook> OnSelected { get; set; }
+
+    private async Task HandleClick()
+    {
+        Console.WriteLine("CLICKED");
+        
+        await OnSelected.InvokeAsync(Book);
+    }
+
+}
