@@ -8,11 +8,16 @@
          alt="@Book.BookName" />
 
     <div class="owner-badges">
-        @foreach (var owner in Book.UserBooks)
+        @{
+            var totalCopies = Book.UserBooks.Count();
+        }
+
+        @if (totalCopies > 1)
         {
-            <div class="owner-badge"
-                title="@owner.User.Name">
-                @owner.User.Name.Substring(0,1).ToUpper()
+            <div class="owner-badges">
+                <div class="owner-badge" title="Total copies owned">
+                    @totalCopies
+                </div>
             </div>
         }
     </div>
