@@ -36,6 +36,29 @@
                         </strong>
                     </p>
 
+                    <div class="owner-section">
+                        <strong>Owners:</strong>
+
+                        <ul class="owner-list">
+                            @foreach (var ub in Book.UserBooks)
+                            {
+                                <li class="owner-item">
+                                    <span>@ub.User.Name</span>
+
+                                    <button class="remove-btn"
+                                            @onclick="() => OnRemoveOwner.InvokeAsync(ub)">
+                                        Remove
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <p>
+                        <strong>Author(s):</strong>
+                        @string.Join(", ", Book.BookAuthors.Select(ub => ub.Author.AuthorName))
+                    </p>
+
                     <p>
                         <strong>ISBN:</strong>
                         @Book.ISBN
@@ -103,6 +126,9 @@
 
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<UserBook> OnRemoveOwner { get; set; }
 
     private async Task Close()
     {

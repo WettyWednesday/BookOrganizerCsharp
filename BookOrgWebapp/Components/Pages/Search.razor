@@ -38,7 +38,7 @@ else
 }
 @if (selectedBook != null)
 {
-    <BookDetailsModal Book="selectedBook" OnClose="CloseModal" />
+    <BookDetailsModal Book="selectedBook" OnClose="CloseModal" OnRemoveOwner="RemoveOwner" />
 }
 
 @code {
@@ -51,15 +51,64 @@ else
     
     private Title? selectedBook;
 
-    private Task OpenBook(Title book)
+    private async Task OpenBook(Title book)
     {
-        selectedBook = book;
-        return InvokeAsync(StateHasChanged);
+        var freshBook = await Db.Titles
+            .Include(t => t.UserBooks)
+                .ThenInclude(ub => ub.User)
+
+            .Include(t => t.BookAuthors)
+                .ThenInclude(ba => ba.Author)
+
+            .Include(t => t.BookGenres)
+            .FirstOrDefaultAsync(t => t.ISBN == book.ISBN);
+        
+        // In the rare case the book was deleted just after clicking the tile
+        if (freshBook == null)
+        {
+            selectedBook = null;
+            return;
+        }
+
+        selectedBook = freshBook;
     }
 
     private void CloseModal()
     {
         selectedBook = null;
+    }
+
+    private async Task LoadBooks()
+    {
+        var query = Db.Titles
+            .Include(t => t.UserBooks)
+                .ThenInclude(ub => ub.User)
+            .Include(t => t.BookAuthors)
+                .ThenInclude(ta => ta.Author)
+            .Include(t => t.BookGenres)
+            .AsSplitQuery()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.ToLower();
+
+            query = query.Where(t =>
+               (t.ISBN ?? "").ToLower().Contains(term)||
+               (t.BookName ?? "").ToLower().Contains(term)||
+               (t.SubTitle ?? "").ToLower().Contains(term)||
+               (t.Description ?? "").ToLower().Contains(term)||
+               (t.Publisher ?? "").ToLower().Contains(term)||
+               (t.Language ?? "").ToLower().Contains(term)||
+               (t.ISBN10 ?? "").ToLower().Contains(term)||
+               t.BookAuthors.Any(ta => (ta.Author.AuthorName ?? "").ToLower().Contains(term))||
+               t.BookGenres.Any(tg => (tg.Genre ?? "").ToLower().Contains(term))||
+               t.UserBooks.Any(ub => (ub.User.Name ?? "").ToLower().Contains(term))||
+               t.UserBooks.Any(ub => (ub.User.Email ?? "").ToLower().Contains(term))
+            );
+        }
+
+        books = await query.ToListAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -98,5 +147,34 @@ else
         }
 
         books = await query.ToListAsync();
+    }
+
+    private async Task RemoveOwner(UserBook userBook)
+    {
+        var isbn = userBook.ISBN;
+
+        Db.UserBooks.Remove(userBook);
+        await Db.SaveChangesAsync();
+
+        var hasAny = await Db.UserBooks.AnyAsync(u => u.ISBN == isbn);
+
+        if (!hasAny)
+        {
+            var title = await Db.Titles.FindAsync(isbn);
+            if (title != null)
+            {
+                Db.Titles.Remove(title);
+                await Db.SaveChangesAsync();
+            }
+        }
+
+        // Update the tiles
+        await LoadBooks();
+
+        // Just for UI
+        selectedBook?.UserBooks.Remove(userBook);
+
+        await InvokeAsync(StateHasChanged);
+        
     }
 }

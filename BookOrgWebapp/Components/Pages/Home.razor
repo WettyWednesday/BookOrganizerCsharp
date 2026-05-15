@@ -96,6 +96,7 @@
         var isbn10 = book.IndustryIdentifiers?
             .FirstOrDefault(x => x.Type == "ISBN_10")?.Identifier;
 
+        // Currently need ISBN 13, could improve and make ISBN 10 into 13 
         if (isbn13 == null)
         {
             error = "No ISBN13 found.";
