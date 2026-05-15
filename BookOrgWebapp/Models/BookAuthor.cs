@@ -6,7 +6,7 @@ namespace BookOrgWebapp.Models;
 public class BookAuthor
 {
     public int AuthorID { get; set; }
-    public string ISBN { get; set; }
+    public required string ISBN { get; set; }
     public Title Title { get; set; } = null!;
     public Author Author { get; set; } = null!;
 }

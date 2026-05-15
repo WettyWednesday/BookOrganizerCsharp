@@ -16,7 +16,7 @@
     <form action="/search" method="get" data-enhance data-permanent>
         <div class="input-group">
             <input class="form-control" type="search" name="searchTerm" value="@SearchTerm"
-                   placeholder="Search by ISBN, Title, User, Email..." />
+                   placeholder="Search by ISBN, Title, User, Author..." />
 
             <button class="btn btn-primary" type="submit">Search</button>
         </div>
@@ -32,15 +32,13 @@ else
     <div class="book-grid">
         @foreach (var book in books)
         {
-            <BookCard Book="@book"
-                    OnSelected="@(b => OpenBook(b))" />
-            }
+            <BookCard Book="@book" OnSelected="@(b => OpenBook(b))" />
+        }
     </div>
 }
 @if (selectedBook != null)
 {
-    <BookDetailsModal Book="selectedBook"
-                      OnClose="CloseModal" />
+    <BookDetailsModal Book="selectedBook" OnClose="CloseModal" />
 }
 
 @code {
@@ -49,11 +47,11 @@ else
     [SupplyParameterFromQuery]
     private string? SearchTerm { get; set; }
 
-    private List<UserBook> books = new();
+    private List<Title> books = new();
     
-    private UserBook? selectedBook;
+    private Title? selectedBook;
 
-    private Task OpenBook(UserBook book)
+    private Task OpenBook(Title book)
     {
         selectedBook = book;
         return InvokeAsync(StateHasChanged);
@@ -66,19 +64,37 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        var query = Db.UserBooks
-            .Include(b => b.Title)
-            .Include(b => b.User)
+        var query = Db.Titles
+            .Include(t => t.UserBooks)
+                .ThenInclude(ub => ub.User)
+
+            .Include(t => t.BookAuthors)
+                .ThenInclude(ta => ta.Author)
+
+            .Include(t => t.BookGenres)
+            .AsSplitQuery()
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            query = query.Where(b =>
-                b.ISBN.Contains(SearchTerm) ||
-                b.UserID.ToString().Contains(SearchTerm) ||
-                b.Title.BookName.ToLower().Contains(SearchTerm.ToLower()) ||
-                b.User.Name.ToLower().Contains(SearchTerm.ToLower()) ||
-                b.User.Email.ToLower().Contains(SearchTerm.ToLower()));
+            var term = SearchTerm.ToLower();
+
+            // Still missing published date from query and page count
+            // But they have been ommitted on purpose as they make no sense to search for. 
+            // They could be a later filter you place upon a query, but not the query itself
+            query = query.Where(t =>
+               (t.ISBN ?? "").ToLower().Contains(term)||
+               (t.BookName ?? "").ToLower().Contains(term)||
+               (t.SubTitle ?? "").ToLower().Contains(term)||
+               (t.Description ?? "").ToLower().Contains(term)||
+               (t.Publisher ?? "").ToLower().Contains(term)||
+               (t.Language ?? "").ToLower().Contains(term)||
+               (t.ISBN10 ?? "").ToLower().Contains(term)||
+               t.BookAuthors.Any(ta => (ta.Author.AuthorName ?? "").ToLower().Contains(term))||
+               t.BookGenres.Any(tg => (tg.Genre ?? "").ToLower().Contains(term))||
+               t.UserBooks.Any(ub => (ub.User.Name ?? "").ToLower().Contains(term))||
+               t.UserBooks.Any(ub => (ub.User.Email ?? "").ToLower().Contains(term))
+            );
         }
 
         books = await query.ToListAsync();

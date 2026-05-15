@@ -4,19 +4,25 @@
     
 
     <img class="book-cover"
-         src="@Book.Title.ThumbnailNormal"
-         alt="@Book.Title.BookName" />
+         src="@Book.ThumbnailNormal"
+         alt="@Book.BookName" />
 
-    <div class="owner-badge"
-         title="@Book.User.Name">
-        @Book.User.Name.Substring(0, 1).ToUpper()
+    <div class="owner-badges">
+        @foreach (var owner in Book.UserBooks)
+        {
+            <div class="owner-badge"
+                title="@owner.User.Name">
+                @owner.User.Name.Substring(0,1).ToUpper()
+            </div>
+        }
     </div>
 
     <div class="book-info">
-        <h5>@Book.Title.BookName</h5>
+        <h5>@Book.BookName</h5>
 
-        <p class="owner-name">
-            @Book.User.Name
+        <p class="author-names">
+            @string.Join(", ",
+                Book.BookAuthors.Select(ta => ta.Author.AuthorName))
         </p>
     </div>
 
@@ -25,14 +31,12 @@
 @code {
 
     [Parameter]
-    public required UserBook Book { get; set; }
+    public required Title Book { get; set; }
     [Parameter]
-    public EventCallback<UserBook> OnSelected { get; set; }
+    public EventCallback<Title> OnSelected { get; set; }
 
     private async Task HandleClick()
     {
-        Console.WriteLine("CLICKED");
-        
         await OnSelected.InvokeAsync(Book);
     }
 

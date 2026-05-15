@@ -10,6 +10,6 @@ public class Author
 
     [Required]
     [StringLength(120)]
-    public string AuthorName { get; set; }
+    public required string AuthorName { get; set; }
     public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
 }

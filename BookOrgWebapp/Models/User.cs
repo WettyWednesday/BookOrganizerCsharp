@@ -11,16 +11,16 @@ public class User
 
     [Required]
     [StringLength(25)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Required]
     [EmailAddress]
     [StringLength(60)]
     [Column(TypeName = "nvarchar(60)")]
-    public string Email { get; set; }
+    public required string Email { get; set; }
 
     public string? GoogleId { get; set; }
     public string? AvatarUrl { get; set; }
 
-    public ICollection<UserBook> UserBooks { get; set; }
+    public ICollection<UserBook> UserBooks { get; set; } = new List<UserBook>();
 }

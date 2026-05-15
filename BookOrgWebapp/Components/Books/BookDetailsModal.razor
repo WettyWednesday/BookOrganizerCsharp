@@ -17,16 +17,19 @@
             <div class="modal-content">
 
                 <div class="cover-section">
-                    <img src="@Book.Title.ThumbnailNormal?.Replace("http://", "https://")"
-                         alt="@Book.Title.BookName" />
+                    <img src="@Book.ThumbnailNormal?.Replace("http://", "https://")"
+                         alt="@Book.BookName" />
                 </div>
 
                 <div class="details-section">
 
-                    <h2>@Book.Title.BookName</h2>
+                    <h2>@Book.BookName</h2>
 
                     <p class="owner">
-                        Owned by <strong>@Book.User.Name</strong>
+                        Owned by 
+                        <strong>
+                            @string.Join(", ", Book.UserBooks.Select(ub => ub.User.Name))
+                        </strong>
                     </p>
 
                     <p>
@@ -34,26 +37,26 @@
                         @Book.ISBN
                     </p>
 
-                    @if (!string.IsNullOrWhiteSpace(Book.Title.Language))
+                    @if (!string.IsNullOrWhiteSpace(Book.Language))
                     {
                         <p>
                             <strong>Language:</strong>
-                            @Book.Title.Language
+                            @Book.Language
                         </p>
                     }
 
-                    @if (!string.IsNullOrWhiteSpace(Book.Title.Publisher))
+                    @if (!string.IsNullOrWhiteSpace(Book.Publisher))
                     {
                         <p>
                             <strong>Publisher:</strong>
-                            @Book.Title.Publisher
+                            @Book.Publisher
                         </p>
                     }
 
-                    @if (!string.IsNullOrWhiteSpace(Book.Title.Description))
+                    @if (!string.IsNullOrWhiteSpace(Book.Description))
                     {
                         <div class="description">
-                            @Book.Title.Description
+                            @Book.Description
                         </div>
                     }
 
@@ -69,7 +72,7 @@
 @code {
 
     [Parameter]
-    public UserBook? Book { get; set; }
+    public Title? Book { get; set; }
 
     [Parameter]
     public EventCallback OnClose { get; set; }

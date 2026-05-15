@@ -5,7 +5,7 @@ namespace BookOrgWebapp.Models;
 
 public class BookGenre
 {
-    public string Genre { get; set; }
-    public string ISBN { get; set; }
+    public required string Genre { get; set; }
+    public required string ISBN { get; set; }
     public Title Title { get; set; } = null!;
 }
