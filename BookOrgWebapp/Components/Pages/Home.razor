@@ -194,7 +194,6 @@
 
     async Task SearchBook()
     {
-        Console.WriteLine("Button clicked");
         error = "";
         book = null;
 
@@ -204,15 +203,34 @@
             return;
         }
 
-        var result = await BooksService.GetBookByISBN(isbn);
+        try{
 
-        if (result?.Items?.Count > 0)
-        {
-            book = result.Items[0].VolumeInfo;
+            var (result, status) = await BooksService.GetBookByISBN(isbn);
+
+            if (status == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                error = "Google Books API limit reached. Please try again later.";
+                return;
+            }
+
+            if (status == System.Net.HttpStatusCode.ServiceUnavailable)
+            {
+                error = "Google Books is temporarily unavailable. Please try again.";
+                return;
+            }
+
+            if (result?.Items?.Count > 0)
+            {
+                book = result.Items[0].VolumeInfo;
+            }
+            else
+            {
+                error = "Book not found.";
+            }
         }
-        else
-        {
-            error = "Book not found.";
+        catch(Exception ex){
+            error = "Unexpected error while contacting Google Books.";
+            Console.WriteLine(ex.Message);
         }
     }
 

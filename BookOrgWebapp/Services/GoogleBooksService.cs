@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 
 public class GoogleBooksService
@@ -11,11 +12,19 @@ public class GoogleBooksService
         _configuration = configuration;
     }
 
-    public async Task<GoogleBooksResponse?> GetBookByISBN(string isbn)
+    public async Task<(GoogleBooksResponse? Data, HttpStatusCode StatusCode)> GetBookByISBN(string isbn)
     {
         var apiKey = _configuration["GoogleBooks:ApiKey"];
         var url = $"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}&key={apiKey}";
 
-        return await _client.GetFromJsonAsync<GoogleBooksResponse>(url);
+        var response = await _client.GetAsync(url);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadFromJsonAsync<GoogleBooksResponse>();
+            return (data, response.StatusCode);
+        }
+
+        return (null, response.StatusCode);
     }
 }

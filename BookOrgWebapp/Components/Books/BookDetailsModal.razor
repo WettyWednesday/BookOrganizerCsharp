@@ -24,6 +24,10 @@
                 <div class="details-section">
 
                     <h2>@Book.BookName</h2>
+                    @if (!string.IsNullOrWhiteSpace(Book.SubTitle))
+                    {
+                        <p class="subtitle">@Book.SubTitle</p>
+                    }
 
                     <p class="owner">
                         Owned by 
@@ -36,6 +40,19 @@
                         <strong>ISBN:</strong>
                         @Book.ISBN
                     </p>
+
+                    @if (!string.IsNullOrWhiteSpace(Book.ISBN10))
+                    {
+                        <p><strong>ISBN10:</strong> @Book.ISBN10</p>
+                    }
+
+                    @if (Book.BookGenres != null && Book.BookGenres.Any())
+                    {
+                        <p>
+                            <strong>Genres:</strong>
+                            @string.Join(", ", Book.BookGenres.Select(g => g.Genre))
+                        </p>
+                    }
 
                     @if (!string.IsNullOrWhiteSpace(Book.Language))
                     {
@@ -51,6 +68,16 @@
                             <strong>Publisher:</strong>
                             @Book.Publisher
                         </p>
+                    }
+
+                    @if (Book.PageCount > 0)
+                    {
+                        <p><strong>Pages:</strong> @Book.PageCount</p>
+                    }
+
+                    @if (Book.PublishedDate != null)
+                    {
+                        <p><strong>Published:</strong> @Book.PublishedDate?.ToString("yyyy-MM-dd")</p>
                     }
 
                     @if (!string.IsNullOrWhiteSpace(Book.Description))
