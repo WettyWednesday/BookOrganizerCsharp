@@ -107,6 +107,7 @@
         var existingTitle = await Db.Titles
             .Include(t => t.BookAuthors)
             .Include(t => t.BookGenres)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.ISBN == isbn13);
 
         if (existingTitle == null)

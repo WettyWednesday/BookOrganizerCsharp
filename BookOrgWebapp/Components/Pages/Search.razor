@@ -61,6 +61,7 @@ else
                 .ThenInclude(ba => ba.Author)
 
             .Include(t => t.BookGenres)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.ISBN == book.ISBN);
         
         // In the rare case the book was deleted just after clicking the tile
