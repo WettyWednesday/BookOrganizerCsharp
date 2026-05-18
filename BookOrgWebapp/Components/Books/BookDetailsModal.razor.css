@@ -96,10 +96,16 @@
     color: black;
 }
 
+.owner-section {
+    margin: 1rem 0;
+}
+
 .owner-list {
     list-style: none;
     padding: 0;
-    margin: 0.5rem 0;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .owner-item {
@@ -107,7 +113,22 @@
     justify-content: space-between;
     align-items: center;
 
-    padding: 0.25rem 0;
+    padding: 0.5rem 0.75rem;
+
+    border-radius: 6px;
+}
+
+/* Odd rows */
+.owner-item:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Even rows */
+.owner-item:nth-child(even) {
+    background-color: #f5f5f5;
+}
+.owner-item:hover {
+    border-left: 4px solid #fd0d0d;
 }
 
 .remove-btn {

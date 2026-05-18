@@ -9,37 +9,38 @@
 @inject AppDbContext Db
 
 <PageTitle>Search</PageTitle>
+<div class="search-page">
+    <h1>Book Search</h1>
 
-<h1>Book Search</h1>
+    <div class="mb-3">
+        <form action="/search" method="get" data-enhance data-permanent>
+            <div class="input-group">
+                <input class="form-control" type="search" name="searchTerm" value="@SearchTerm"
+                    placeholder="Search by ISBN, Title, User, Author..." />
 
-<div class="mb-3">
-    <form action="/search" method="get" data-enhance data-permanent>
-        <div class="input-group">
-            <input class="form-control" type="search" name="searchTerm" value="@SearchTerm"
-                   placeholder="Search by ISBN, Title, User, Author..." />
-
-            <button class="btn btn-primary" type="submit">Search</button>
-        </div>
-    </form>
-</div>
-
-@if (!books.Any())
-{
-    <p><em>No matching books found.</em></p>
-}
-else
-{
-    <div class="book-grid">
-        @foreach (var book in books)
-        {
-            <BookCard Book="@book" OnSelected="@(b => OpenBook(b))" />
-        }
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
     </div>
-}
-@if (selectedBook != null)
-{
-    <BookDetailsModal Book="selectedBook" OnClose="CloseModal" OnRemoveOwner="RemoveOwner" />
-}
+
+    @if (!books.Any())
+    {
+        <p><em>No matching books found.</em></p>
+    }
+    else
+    {
+        <div class="book-grid">
+            @foreach (var book in books)
+            {
+                <BookCard Book="@book" OnSelected="@(b => OpenBook(b))" />
+            }
+        </div>
+    }
+    @if (selectedBook != null)
+    {
+        <BookDetailsModal Book="selectedBook" OnClose="CloseModal" OnRemoveOwner="RemoveOwner" />
+    }
+</div>
 
 @code {
 
