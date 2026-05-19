@@ -1,0 +1,137 @@
+@using BookOrgWebapp.Models
+
+@if (Book != null)
+{
+    <div class="modal-backdrop" @onclick="Close">
+
+        <div class="book-modal"
+             @onclick:stopPropagation="true">
+
+            <button type="button"
+                    class="close-button"
+                    style="width:40px; height:40px;"
+                    @onclick="Close">
+                X
+            </button>
+
+            <div class="modal-content">
+
+                <div class="cover-section">
+                    <img src="@Book.ThumbnailNormal?.Replace("http://", "https://")"
+                         alt="@Book.BookName" />
+                </div>
+
+                <div class="details-section">
+
+                    <h2>@Book.BookName</h2>
+                    @if (!string.IsNullOrWhiteSpace(Book.SubTitle))
+                    {
+                        <p class="subtitle">@Book.SubTitle</p>
+                    }
+
+                    <p class="owner">
+                        Owned by 
+                        <strong>
+                            @string.Join(", ", Book.UserBooks.Select(ub => ub.User.Name))
+                        </strong>
+                    </p>
+
+                    <div class="owner-section">
+                        <strong>Owners:</strong>
+
+                        <ul class="owner-list">
+                            @foreach (var ub in Book.UserBooks)
+                            {
+                                <li class="owner-item">
+                                    <span>@ub.User.Name</span>
+
+                                    <button class="remove-btn"
+                                            @onclick="() => OnRemoveOwner.InvokeAsync(ub)">
+                                        Remove
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <p>
+                        <strong>Author(s):</strong>
+                        @string.Join(", ", Book.BookAuthors.Select(ub => ub.Author.AuthorName))
+                    </p>
+
+                    <p>
+                        <strong>ISBN:</strong>
+                        @Book.ISBN
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(Book.ISBN10))
+                    {
+                        <p><strong>ISBN10:</strong> @Book.ISBN10</p>
+                    }
+
+                    @if (Book.BookGenres != null && Book.BookGenres.Any())
+                    {
+                        <p>
+                            <strong>Genres:</strong>
+                            @string.Join(", ", Book.BookGenres.Select(g => g.Genre))
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Language))
+                    {
+                        <p>
+                            <strong>Language:</strong>
+                            @Book.Language
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Publisher))
+                    {
+                        <p>
+                            <strong>Publisher:</strong>
+                            @Book.Publisher
+                        </p>
+                    }
+
+                    @if (Book.PageCount > 0)
+                    {
+                        <p><strong>Pages:</strong> @Book.PageCount</p>
+                    }
+
+                    @if (Book.PublishedDate != null)
+                    {
+                        <p><strong>Published:</strong> @Book.PublishedDate?.ToString("yyyy-MM-dd")</p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Book.Description))
+                    {
+                        <div class="description">
+                            @Book.Description
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public Title? Book { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<UserBook> OnRemoveOwner { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

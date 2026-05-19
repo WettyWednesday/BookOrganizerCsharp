@@ -1,0 +1,48 @@
+@using BookOrgWebapp.Models
+
+<div class="book-card" @onclick="HandleClick">
+    
+
+    <img class="book-cover"
+         src="@Book.ThumbnailNormal"
+         alt="@Book.BookName" />
+
+    <div class="owner-badges">
+        @{
+            var totalCopies = Book.UserBooks.Count();
+        }
+
+        @if (totalCopies > 1)
+        {
+            <div class="owner-badges">
+                <div class="owner-badge" title="Total copies owned">
+                    @totalCopies
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="book-info">
+        <h5>@Book.BookName</h5>
+
+        <p class="author-names">
+            @string.Join(", ",
+                Book.BookAuthors.Select(ta => ta.Author.AuthorName))
+        </p>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public required Title Book { get; set; }
+    [Parameter]
+    public EventCallback<Title> OnSelected { get; set; }
+
+    private async Task HandleClick()
+    {
+        await OnSelected.InvokeAsync(Book);
+    }
+
+}

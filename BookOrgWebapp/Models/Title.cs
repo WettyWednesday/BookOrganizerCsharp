@@ -8,7 +8,7 @@ public class Title
     [Key]
     [RegularExpression(@"^\d{13}$")]
     [Column(TypeName = "nvarchar(13)")]
-    public string ISBN { get; set; }
+    public required string ISBN { get; set; }
 
     [Required]
     [Column(TypeName = "nvarchar(120)")]
