@@ -81,6 +81,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -100,9 +101,9 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 // Login / Logout endpoints
-app.MapGet("/login", () =>
+app.MapGet("/login", (string? returnUrl) =>
     Results.Challenge(
-        new AuthenticationProperties { RedirectUri = "/" },
+        new AuthenticationProperties { RedirectUri = returnUrl ?? "/" },
         [GoogleDefaults.AuthenticationScheme]
     ));
 
