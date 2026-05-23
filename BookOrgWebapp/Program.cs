@@ -27,7 +27,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(options =>
 {
-    options.LoginPath = "/login";
+    options.LoginPath = "/login-page";
     options.LogoutPath = "/logout";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
@@ -110,7 +110,7 @@ app.MapGet("/login", (string? returnUrl) =>
 app.MapGet("/logout", async (HttpContext ctx) =>
 {
     await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    return Results.Redirect("/");
+    return Results.Redirect("/login-page");
 });
 
 app.MapStaticAssets();
