@@ -5,8 +5,7 @@
 @inject AppDbContext Db
 @rendermode InteractiveServer
 
-
-<div class="landing-container" style="height:600px;overflow-y:scroll">
+<div class="landing-container">
 
     <h1 class="landing-title">Welcome To Book Organizer</h1>
 
@@ -21,13 +20,21 @@
         <p style="color:red">@error</p>
     }
 
-    @if (book != null)
-    {
-        <div class="book-result">
+</div>
 
-            <div class="book-content">
+@if (book != null)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
 
-                <div class="book-image">
+        <div class="book-modal" @onclick:stopPropagation="true">
+
+            <button type="button" class="close-button" style="width:40px; height:40px;" @onclick="CloseModal">
+                X
+            </button>
+
+            <div class="modal-content">
+
+                <div class="cover-section">
                     @if (!string.IsNullOrEmpty(book.ImageLinks?.thumbnail))
                     {
                         <img src="@book.ImageLinks.thumbnail?.Replace("http://", "https://")" alt="Book cover" />
@@ -38,47 +45,86 @@
                     }
                 </div>
 
-                <div class="book-text">
+                <div class="details-section">
+
                     <h2>@book.Title</h2>
                     <p>@string.Join(", ", book.Authors ?? new List<string>())</p>
-                    <p>@book.Description</p>
-                    <button class="add-button">Add Book</button>
+                    <p>
+                        <strong> Description </strong> <br />
+                        @book.Description
+                    </p>
+
+                    @if (book.Categories != null && book.Categories.Any())
+                    {
+                        <p>
+                            <strong>Genres:</strong>
+                            @string.Join(", ", book.Categories)
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(book.Language))
+                    {
+                        <p>
+                            <strong>Language:</strong>
+                            @book.Language
+                        </p>
+                    }
+
+                    <div style="margin-top: 1rem;">
+                        <select @bind="selectedUserId">
+                            <option value="">-- Select User --</option>
+                            @foreach (var user in users)
+                            {
+                                <option value="@user.UserID">@user.Name</option>
+                            }
+                        </select>
+
+                        <button class="add-button" @onclick="AddBook">
+                            Add Book
+                        </button>
+
+                        @if (!string.IsNullOrEmpty(addMessage))
+                        {
+                            <p style="color: green; margin-top: 0.5rem;">@addMessage</p>
+                        }
+                    </div>
+
                 </div>
 
             </div>
 
         </div>
-    }
 
-    <select @bind="selectedUserId">
-    <option value="">-- Select User --</option>
-    @foreach (var user in users)
-    {
-        <option value="@user.UserID">@user.Name</option>
-    }
-    </select>
-    <button class="add-button" @onclick="AddBook">
-    Add
-    </button>
-    
-
-</div>
+    </div>
+}
 
 @code {
 
     string isbn = "";
     string error = "";
+    string addMessage = "";
 
     VolumeInfo? book;
     List<User> users = new();
     int? selectedUserId;
+
     protected override async Task OnInitializedAsync()
     {
         users = await Db.Users.ToListAsync();
     }
 
+    void CloseModal()
+    {
+        book = null;
+        error = "";
+        addMessage = "";
+    }
+
     async Task AddBook()
     {
+        addMessage = "";
+        error = "";
+
         if (book == null)
         {
             error = "Search for a book first.";
@@ -91,21 +137,18 @@
             return;
         }
 
-        // Extract ISBNs
         var isbn13 = book.IndustryIdentifiers?
             .FirstOrDefault(x => x.Type == "ISBN_13")?.Identifier;
 
         var isbn10 = book.IndustryIdentifiers?
             .FirstOrDefault(x => x.Type == "ISBN_10")?.Identifier;
 
-        // Currently need ISBN 13, could improve and make ISBN 10 into 13 
         if (isbn13 == null)
         {
             error = "No ISBN13 found.";
             return;
         }
 
-        // Check if book already exists
         var existingTitle = await Db.Titles
             .Include(t => t.BookAuthors)
             .Include(t => t.BookGenres)
@@ -129,7 +172,6 @@
                 PublishedDate = ParseDate(book.PublishedDate)
             };
 
-            // Authors
             if (book.Authors != null)
             {
                 foreach (var authorName in book.Authors)
@@ -141,7 +183,7 @@
                     {
                         author = new Author { AuthorName = authorName };
                         Db.Authors.Add(author);
-                        await Db.SaveChangesAsync(); // needed for ID
+                        await Db.SaveChangesAsync();
                     }
 
                     newTitle.BookAuthors.Add(new BookAuthor
@@ -152,7 +194,6 @@
                 }
             }
 
-            // Genres
             if (book.Categories != null)
             {
                 foreach (var genre in book.Categories)
@@ -169,7 +210,6 @@
             await Db.SaveChangesAsync();
         }
 
-        // Add to UserBook (avoid duplicates!)
         var exists = await Db.UserBooks
             .AnyAsync(ub => ub.ISBN == isbn13 && ub.UserID == selectedUserId);
 
@@ -182,6 +222,11 @@
             });
 
             await Db.SaveChangesAsync();
+            addMessage = "Book added successfully!";
+        }
+        else
+        {
+            addMessage = "This user already owns that book.";
         }
     }
 
@@ -207,8 +252,8 @@
             return;
         }
 
-        try{
-
+        try
+        {
             var (result, status) = await BooksService.GetBookByISBN(isbn);
 
             if (status == System.Net.HttpStatusCode.TooManyRequests)
@@ -232,10 +277,10 @@
                 error = "Book not found.";
             }
         }
-        catch(Exception ex){
+        catch (Exception ex)
+        {
             error = "Unexpected error while contacting Google Books.";
             Console.WriteLine(ex.Message);
         }
     }
-
 }
