@@ -12,7 +12,7 @@ public class GoogleBooksService
         _configuration = configuration;
     }
 
-    public async Task<(GoogleBooksResponse? Data, HttpStatusCode StatusCode)> GetBookByISBN(string isbn)
+    public virtual async Task<(GoogleBooksResponse? Data, HttpStatusCode StatusCode)> GetBookByISBN(string isbn)
     {
         var apiKey = _configuration["GoogleBooks:ApiKey"];
         var url = $"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}&key={apiKey}";
