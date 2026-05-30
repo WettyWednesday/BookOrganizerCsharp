@@ -4,8 +4,23 @@
 
 <div class="login-container" style="text-align: center; padding: 4rem;">
     <h1>Welcome to BookOrganizer</h1>
-    <p>Please sign in with your Google account to continue.</p>
-    <a href="/login" class="btn btn-primary btn-lg" style="margin-top: 1rem;">
-        Sign in with Google
-    </a>
+
+    @if (Error == "unauthorized")
+    {
+        <div class="alert alert-danger" style="max-width: 500px; margin: 1rem auto;">
+            That account is not authorized to access BookOrganizer.
+            Please contact an administrator to request access.
+        </div>
+    }
+    else
+    {
+        <p>Please sign in with your Google account to continue.</p>
+    }
+
+    <a href="/login" class="btn btn-primary btn-lg">Sign in with Google</a>
 </div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+}

@@ -43,7 +43,7 @@ builder.Services.AddAuthentication(options =>
     options.Events.OnCreatingTicket = async context =>
     {
         var dbFactory = context.HttpContext.RequestServices
-                               .GetRequiredService<IDbContextFactory<AppDbContext>>();
+            .GetRequiredService<IDbContextFactory<AppDbContext>>();
 
         await using var db = await dbFactory.CreateDbContextAsync();
 
@@ -53,30 +53,29 @@ builder.Services.AddAuthentication(options =>
         var avatar   = context.Principal.FindFirst("picture")?.Value;
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId)
-                ?? await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+                   ?? await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user is null)
         {
-            user = new User
-            {
-                Name      = name,
-                Email     = email,
-                GoogleId  = googleId,
-                AvatarUrl = avatar,
-            };
-            db.Users.Add(user);
+            context.Fail("This account is not authorized to access BookOrganizer.");
+            return;
         }
-        else
-        {
-            user.GoogleId  = googleId;
-            user.AvatarUrl = avatar;
-            user.Name      = name;
-        }
+
+        user.GoogleId  = googleId;
+        user.AvatarUrl = avatar;
+        user.Name      = name;
 
         await db.SaveChangesAsync();
 
         var identity = (ClaimsIdentity)context.Principal.Identity!;
         identity.AddClaim(new Claim("db_user_id", user.UserID.ToString()));
+    };
+    
+    options.Events.OnRemoteFailure = context =>
+    {
+        context.Response.Redirect("/login-page?error=unauthorized");
+        context.HandleResponse();
+        return Task.CompletedTask;
     };
 });
 
