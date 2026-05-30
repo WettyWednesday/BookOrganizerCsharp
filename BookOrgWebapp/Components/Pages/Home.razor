@@ -9,7 +9,7 @@
 
     <h1 class="landing-title">Welcome To Book Organizer</h1>
 
-    <input class="search-input" placeholder="Enter ISBN..." @bind="isbn" />
+    <input class="search-input" placeholder="Enter ISBN..." @bind="isbn" @onkeydown="HandleKeyDown"/>
 
     <button class="search-button" @onclick="SearchBook">
         Search
@@ -24,7 +24,7 @@
 
 @if (book != null)
 {
-    <div class="modal-backdrop" @onclick="CloseModal">
+    <div class="modal-backdrop" @onclick="CloseModal" @onkeydown="HandleModalKeyDown" tabindex="0" @ref="backdropRef">
 
         <div class="book-modal" @onclick:stopPropagation="true">
 
@@ -111,6 +111,26 @@
     protected override async Task OnInitializedAsync()
     {
         users = await Db.Users.ToListAsync();
+    }
+
+    async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+    if (e.Key == "Enter")
+        await SearchBook();
+    }
+
+    async Task HandleModalKeyDown(KeyboardEventArgs e)
+    {
+    if (e.Key == "Escape")
+        CloseModal();
+    }
+
+    ElementReference backdropRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+    if (book != null)
+        await backdropRef.FocusAsync();
     }
 
     void CloseModal()

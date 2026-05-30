@@ -182,6 +182,24 @@ public class AppDbContext : DbContext
                     UserID = 003,
                     Name = "Anna",
                     Email = "Anna@gmail.com",
+                },
+                new User
+                {
+                    UserID = 004,
+                    Name = "Nikolaj",
+                    Email = "nikolajbo@gmail.com",
+                },
+                new User
+                {
+                    UserID = 005,
+                    Name = "Mustafa",
+                    Email = "mustafabaker2970@gmail.com",
+                },
+                new User
+                {
+                    UserID = 006,
+                    Name = "Patrick",
+                    Email = "pmachalet@gmail.com",
                 }
             );
 
