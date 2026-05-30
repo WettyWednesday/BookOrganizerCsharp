@@ -44,21 +44,19 @@ builder.Services.AddAuthentication(options =>
     {
         var dbFactory = context.HttpContext.RequestServices
             .GetRequiredService<IDbContextFactory<AppDbContext>>();
-
         await using var db = await dbFactory.CreateDbContextAsync();
 
         var googleId = context.Principal!.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
         var email    = context.Principal.FindFirst(ClaimTypes.Email)?.Value!;
         var name     = context.Principal.FindFirst(ClaimTypes.Name)?.Value ?? email;
         var avatar   = context.Principal.FindFirst("picture")?.Value;
-
+        
         var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId)
                    ?? await db.Users.FirstOrDefaultAsync(u => u.Email == email);
-
+        
         if (user is null)
         {
-            context.Fail("This account is not authorized to access BookOrganizer.");
-            return;
+            throw new Exception("unauthorized");
         }
 
         user.GoogleId  = googleId;
@@ -70,7 +68,7 @@ builder.Services.AddAuthentication(options =>
         var identity = (ClaimsIdentity)context.Principal.Identity!;
         identity.AddClaim(new Claim("db_user_id", user.UserID.ToString()));
     };
-    
+
     options.Events.OnRemoteFailure = context =>
     {
         context.Response.Redirect("/login-page?error=unauthorized");
@@ -120,7 +118,7 @@ app.MapRazorComponents<App>()
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated(); 
+    db.Database.EnsureCreated();
 }
 
 app.Run();
